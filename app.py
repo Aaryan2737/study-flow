@@ -19,9 +19,10 @@ USERS_FILE = "users.json"
 USERDATA_DIR = "userdata"
 
 def load_users():
+    if not os.path.exists(USERS_FILE):
+        save_users([])
     with open(USERS_FILE, "r") as f:
         return json.load(f)
-
 def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, indent=2)
