@@ -256,6 +256,16 @@
       <div class="schedule-list" id="scheduleList">
         <div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.85rem;">Add tasks to generate your schedule 📅</div>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:0.8rem;">
+  <div style="flex:1">
+    <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">Start Time</label>
+    <input type="time" id="startTime" value="08:00" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-family:var(--font-body);font-size:0.82rem;outline:none;"/>
+  </div>
+  <div style="flex:1">
+    <label style="font-size:0.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">End Time</label>
+    <input type="time" id="endTime" value="22:00" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;color:var(--text);font-family:var(--font-body);font-size:0.82rem;outline:none;"/>
+  </div>
+</div>
       <button class="optimize-btn" onclick="generateSchedule()">⚡ Optimize My Day with AI</button>
     </div>
   </div>
@@ -497,11 +507,27 @@ async function deleteTask(id) {
 document.getElementById('taskInput').addEventListener('keydown', e => { if(e.key==='Enter') addTask(); });
 
 // ── SCHEDULE ───────────────────────────────────────────────────────────────
+function generateTimeSlots(start, end, count) {
+  const startH = parseInt(start.split(':')[0]);
+  const endH   = parseInt(end.split(':')[0]);
+  const gap    = Math.max(1, Math.floor((endH - startH) / count));
+  return Array.from({length: count}, (_, i) => {
+    const h    = startH + i * gap;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12  = h > 12 ? h - 12 : h === 0 ? 12 : h;
+    return `${h12}:00 ${ampm}`;
+  });
+}
+
 function generateSchedule() {
-  const pending = tasks.filter(t => !t.done).sort((a,b) => b.score - a.score).slice(0,4);
+  const pending  = tasks.filter(t => !t.done).sort((a,b) => b.score - a.score).slice(0,4);
   if (!pending.length) return;
-  const times  = ['8:00 AM','10:00 AM','2:00 PM','5:00 PM','7:00 PM','9:00 PM'];
+  
+  const start  = document.getElementById('startTime')?.value || '08:00';
+  const end    = document.getElementById('endTime')?.value   || '22:00';
+  const times  = generateTimeSlots(start, end, pending.length);
   const widths = [100, 85, 70, 55];
+  
   document.getElementById('scheduleList').innerHTML = pending.map((t,i) => `
     <div class="schedule-item">
       <div><div class="sched-time">${times[i]}</div></div>
